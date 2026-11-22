@@ -142,3 +142,21 @@ class ColumnRelationshipContext:
         if self.semantic_confidence is None:
             object.__setattr__(self, "semantic_confidence", self.confidence)
         object.__setattr__(self, "confidence_components", _freeze(self.confidence_components))
+
+
+@dataclass(frozen=True)
+class MetricDefinition:
+    """A data-supported analytical metric inferred from column roles.
+
+    This is a *pattern*, not a business definition. ``operation`` is a
+    SQL-style expression built from the observed columns, and ``evidence``
+    explains why the pattern was detected so callers can accept, reject, or
+    refine it.
+    """
+
+    name: str
+    operation: str
+    rationale: str
+    source_columns: tuple[str, ...] = ()
+    evidence: tuple[Evidence, ...] = ()
+    confidence: float = 0.0

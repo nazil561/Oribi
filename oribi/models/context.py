@@ -10,6 +10,7 @@ from .evidence import (
     ColumnRelationshipContext,
     GrainContext,
     KeyCandidate,
+    MetricDefinition,
     Recommendation,
     RelationshipContext,
     SemanticContext,
@@ -40,6 +41,7 @@ class DatasetContext:
     grain: GrainContext | None = None
     relationships: tuple[RelationshipContext, ...] = ()
     warnings: tuple[Warning, ...] = ()
+    metrics: tuple[MetricDefinition, ...] = ()
     schema_version: str = "2"
 
     def get_column(self, name: str) -> ColumnContext:
@@ -78,6 +80,8 @@ class DatasetContext:
             parts.append(f"Likely grain: {self.grain.label} (confidence {self.grain.confidence:.2f}).")
         elif self.grain:
             parts.append("Likely grain could not be determined confidently.")
+        if self.metrics:
+            parts.append(f"{len(self.metrics)} inferred metric definition(s).")
         if self.profile.exact_row_limit_exceeded:
             parts.append("Exact row limit exceeded.")
         if self.warnings:

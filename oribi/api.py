@@ -16,6 +16,7 @@ from .profiling.observations import AnalysisSession
 from .profiling.relationships import detect_relationships, infer_column_relationships
 from .profiling.temporal import temporal_gap_warnings
 from .reasoning.keys import detect_keys
+from .reasoning.metrics import infer_metrics
 from .reasoning.rules import dataset_warnings, reason_column
 from .reasoning.semantic import infer_semantic
 
@@ -122,6 +123,7 @@ def inspect(df: pd.DataFrame, *, options: ProfileOptions | None = None) -> Datas
         )
         for name in names
     }
+    metrics = infer_metrics(semantics, stats, nrows)
     # Unparsed dates can represent the same instant in different forms.
     structural_roles = {
         name: semantics[name].role for name in names
@@ -199,4 +201,5 @@ def inspect(df: pd.DataFrame, *, options: ProfileOptions | None = None) -> Datas
         grain=grain,
         relationships=relationships,
         warnings=tuple(global_warnings),
+        metrics=metrics,
     )

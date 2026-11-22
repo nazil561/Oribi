@@ -196,6 +196,24 @@ def _column_role_lines(context: Any) -> list[_ContextLine]:
     return lines if len(lines) > 1 else []
 
 
+def _metric_lines(context: Any) -> list[_ContextLine]:
+    """Describe inferred metric definitions and their evidence basis."""
+    metrics = getattr(context, "metrics", ())
+    if not metrics:
+        return []
+    lines: list[_ContextLine] = ["INFERRED METRICS"]
+    for metric in metrics:
+        header = (
+            f"- {metric.name}: {metric.operation} "
+            f"(source: {', '.join(metric.source_columns)}; {metric.confidence:.0%} confidence)"
+        )
+        basis = " ".join(
+            " ".join(evidence.statement.split()) for evidence in metric.evidence
+        ) if metric.evidence else ""
+        lines.append(_OptionalText(header, evidence=f" · {basis}") if basis else header)
+    return lines
+
+
 def _cardinality_lines(context: Any) -> list[_ContextLine]:
     lines: list[_ContextLine] = ["CARDINALITY"]
     for column in sorted(context.columns, key=lambda item: item.name):
@@ -359,6 +377,9 @@ def to_context(context: Any, *, max_chars: int = 8000, include_values: bool = Fa
     role_lines = _column_role_lines(context)
     if role_lines:
         sections.append(role_lines)
+    metric_lines = _metric_lines(context)
+    if metric_lines:
+        sections.append(metric_lines)
     if warning_lines:
         sections.append(warning_lines)
     relationship_lines = _relationship_lines(context)
@@ -404,6 +425,11 @@ def to_context(context: Any, *, max_chars: int = 8000, include_values: bool = Fa
             messages.append(f"{len(prioritized) - len(selected_warnings)} additional warnings omitted.")
         add_section("WARNINGS", messages)
     add_section("AGGREGATION GUIDANCE", [line for _, line in sorted(guidance, key=lambda item: not item[0])])
+    if metric_lines:
+        add_section(
+            "INFERRED METRICS",
+            [line if isinstance(line, str) else line.text for line in metric_lines[1:6]],
+        )
     if header[essential_header:]:
         add_section("DATASET DETAILS", header[essential_header:])
     if relationship_lines:

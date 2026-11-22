@@ -53,6 +53,21 @@ def to_markdown(context: Any, *, include_values: bool = False) -> str:
         lines.extend(f"- {_md(e.statement)}" for e in context.grain.evidence)
         lines += ["", "</details>"]
 
+    if getattr(context, "metrics", ()):
+        lines += ["", "## Inferred metrics", ""]
+        for metric in context.metrics:
+            columns_text = ", ".join(_md(c) for c in metric.source_columns)
+            lines.append(f"### {_md(metric.name)}")
+            lines.append("")
+            lines.append(f"- Operation: `{_md(metric.operation)}`")
+            lines.append(f"- Source columns: {columns_text}")
+            lines.append(f"- Confidence: {metric.confidence:.0%}")
+            lines.append(f"- Rationale: {_md(metric.rationale)}")
+            if metric.evidence:
+                lines.append("- Basis:")
+                lines.extend(f"  - {_md(e.statement)}" for e in metric.evidence)
+            lines.append("")
+
     role_labels = {
         "identifier": "identifier candidate",
         "dimension": "categorical dimension",
